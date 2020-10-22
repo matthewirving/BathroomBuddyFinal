@@ -104,7 +104,7 @@ void setup() {
   
   for (int j = 0; j < 7; j++)
   {
-    pinMode(switchPins[j], INPUT);
+    pinMode(switchPins[j], INPUT_PULLDOWN);
   }
 
   
@@ -132,8 +132,11 @@ void loop() {
   if(switchCheck >= 1)
   {
     switchFlipped = true;
+    if(myTime.LEDTime() % 10 == 0)
+    {
     Serial.print("SwitchCheck: ");
     Serial.println(switchCheck);
+    }
   } 
   else
   {
@@ -168,9 +171,11 @@ void loop() {
   {
     number = 0;
   }
-  
+  if(myTime.LEDTime() % 10 == 0)
+  {
   Serial.print("Number: ");
   Serial.println(number);
+  }
 
   for (i = 0; i < NUM_OF_DIGITS; i++)
   {
