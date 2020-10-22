@@ -1,7 +1,5 @@
 #include <Arduino.h>
-#include <vector>
 #include <Time.cpp>
-#include <ShiftRegister74HC595.h>
 
 //
 // Use one 74HC595 to control a 12-pin common-anode 4-digit seven-segment display with fast scanning
@@ -84,6 +82,8 @@ void update_one_digit()
 
 }
 
+int switchPins[] = {13, 12, 14, 27, 26, 25, 33};
+
 void setup() {
   // put your setup code here, to run once:
   pinMode(2, INPUT);
@@ -101,13 +101,20 @@ void setup() {
   pinMode(data_pin, OUTPUT);
   pinMode(bit_clock_pin, OUTPUT);
   pinMode(digit_clock_pin, OUTPUT);  
+  
+  for (int j = 0; j < 7; j++)
+  {
+    pinMode(switchPins[j], INPUT);
+  }
 
   
 }
 Time myTime;
 
+int switchCheck = 0;
 
 bool firstRun = true;
+bool switchFlipped = false;
 
 void loop() {
   
@@ -115,8 +122,23 @@ void loop() {
   unsigned long number;
   unsigned long digit_base;
   
+  switchCheck = 0;
+
+  for (int k = 0; k < 7; k++)
+  {
+  switchCheck += digitalRead(switchPins[k]);
+  }
   
-  
+  if(switchCheck >= 1)
+  {
+    switchFlipped = true;
+    Serial.print("SwitchCheck: ");
+    Serial.println(switchCheck);
+  } 
+  else
+  {
+    switchFlipped = false;
+  }
 
   if(firstRun)
   {
@@ -124,10 +146,7 @@ void loop() {
     firstRun = false;
   }
   
-  if(digitalRead(2) == HIGH)
-  {
-    myTime.addMinutes(1);
-  }
+ 
   
   
   // get the value to be displayed
@@ -141,10 +160,17 @@ void loop() {
   //
   // for example, if digit_base := 2, binary values will be shown. If digit_base := 16, hexidecimal values will be shown
   //
+  if(switchFlipped)
+  {
+    number = myTime.LEDTime();
+  }
+  else
+  {
+    number = 0;
+  }
   
-  number = myTime.LEDTime();
-  //Serial.print("LEDTime: ");
-  Serial.println(myTime.LEDTime());
+  Serial.print("Number: ");
+  Serial.println(number);
 
   for (i = 0; i < NUM_OF_DIGITS; i++)
   {
@@ -166,7 +192,7 @@ void loop() {
   
 
   //shiftDigits();
-  delay(digitalRead(A0) * 1000);
+  //delay(digitalRead(A0) * 1000);
 }
 
 
