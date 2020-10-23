@@ -1,6 +1,5 @@
 #include <time.h>
 #include <Arduino.h>
-#include <iostream>
 
 class Time {
   //private:
@@ -57,5 +56,14 @@ class Time {
     currTime = millis();
     initTime = millis();
     elapsed = currTime - initTime;
+  }
+
+  
+  String fLEDTime()
+  {
+    int number = LEDTime();
+    
+    String temp = String(number);
+    return temp;
   }
 };
