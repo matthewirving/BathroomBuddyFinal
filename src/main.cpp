@@ -1,11 +1,6 @@
 #include <Arduino.h>
 #include <Time.cpp>
 
-//
-// Use one 74HC595 to control a 12-pin common-anode 4-digit seven-segment display with fast scanning
-// the display: http://www.icshop.com.tw/product_info.php/products_id/19357
-//
-
 #define DELAY_FACTOR  (100)
 #define NUM_OF_DIGITS (4)
 
@@ -116,53 +111,25 @@ int switchCheck = 0;
 bool firstRun = true;
 bool switchFlipped = false;
 
-void loop() {
-  
-  int i;
-  unsigned long number;
-  unsigned long digit_base;
-  
+bool switchChecker()
+{
   switchCheck = 0;
-
+  
   for (int k = 0; k < 7; k++)
   {
   switchCheck += digitalRead(switchPins[k]);
   }
   
-  if(switchCheck >= 1)
-  {
-    switchFlipped = true;
-    if(myTime.LEDTime() % 10 == 0)
-    {
-    Serial.print("SwitchCheck: ");
-    Serial.println(switchCheck);
-    }
-  } 
-  else
-  {
-    switchFlipped = false;
-  }
+  return (switchCheck >= 1 ? true : false);
+}
 
-  if(firstRun)
-  {
-    myTime.initalizeTime();
-    firstRun = false;
-  }
-  
- 
-  
-  
-  // get the value to be displayed
- 
+void ledFunction()
+{
+  int i;
+  unsigned long number;
+  unsigned long digit_base;
 
-  digit_base = 10;
 
-  // get every values in each position of those 4 digits based on "digit_base"
-  //
-  // digit_base should be <= 16
-  //
-  // for example, if digit_base := 2, binary values will be shown. If digit_base := 16, hexidecimal values will be shown
-  //
   if(switchFlipped)
   {
     number = myTime.LEDTime();
@@ -170,13 +137,10 @@ void loop() {
   else
   {
     number = 0;
+    myTime.reset();
   }
-  if(myTime.LEDTime() % 10 == 0)
-  {
-  Serial.print("Number: ");
-  Serial.println(number);
-  }
-
+ 
+  digit_base = 10;
   for (i = 0; i < NUM_OF_DIGITS; i++)
   {
     if(digit_base == 10)
@@ -189,15 +153,26 @@ void loop() {
     }
     
     digit_base = digit_base * 10;
-    
-    
   }
 
-  update_one_digit();
+}
+
+void loop() {
+  
+  
+  
+  
+  switchFlipped = switchChecker();
   
 
-  //shiftDigits();
-  //delay(digitalRead(A0) * 1000);
+  if(firstRun)
+  {
+    myTime.initalizeTime();
+    firstRun = false;
+  }
+  
+  ledFunction();
+  update_one_digit();
 }
 
 

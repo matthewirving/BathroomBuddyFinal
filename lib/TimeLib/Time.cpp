@@ -51,4 +51,11 @@ class Time {
   {
     extra += (secs * 1000);
   }
+
+  void reset()
+  {
+    currTime = millis();
+    initTime = millis();
+    elapsed = currTime - initTime;
+  }
 };
