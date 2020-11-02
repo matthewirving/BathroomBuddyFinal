@@ -170,10 +170,71 @@ void handle_root()
   server.send(200, "text/html", s);
 }
 
+void handle_name()
+{
+  int switchNum = 0;
+  bool switchFound = false;
+  String name = "Noone";
+  for(int j = 0; j < 7; j++)
+  {
+    if(digitalRead(switchPins[j]) == HIGH)
+    {
+      switchNum = j;
+      switchFound = true;
+    }
+  }
+
+  switch(switchNum)
+  {
+    case 1:
+      name = "Switch One";
+      break;
+    case 2:
+      name = "Switch Two";
+      break;
+    case 3:
+      name = "Switch Three";
+      break;
+    case 4:
+      name = "Switch Four";
+      break;
+    case 5:
+      name = "Switch Five";
+      break;
+    case 6:
+      name = "Switch Six";
+      break;
+    default:
+      name = "Default / Noone";
+      break;
+  }
+
+  server.send(200, "text/plane", name);
+}
+
 void handle_time()
 {
   String s = myTime.fLEDTime();
-  server.send(200, "text/plane", s);
+  String t = "";
+  int lenHold = s.length();
+  switch(lenHold)
+  {
+    case 1:
+      t = "00:0" + s;
+      break;
+    case 2:
+      t = "00:" + s;
+      break;
+    case 3:
+      t = "0" + s.substring(0,1) + ":" + s.substring(1);
+      break;
+    case 4:
+      t = s.substring(0,2) + ":" + s.substring(2);
+      break;
+  }
+  //if(myTime.LEDTime() % 2 == 1) {Serial.print(myTime.fLEDTime() + " ------ "); Serial.print(lenHold + " ------ "); Serial.println(t);}
+  
+  server.send(200, "text/plane", t);
 }
 
 
@@ -204,6 +265,7 @@ void setup() {
   
   server.on("/", handle_root);
   server.on("/readTime", handle_time);
+  server.on("/readName", handle_name);
   server.begin();
 }
 

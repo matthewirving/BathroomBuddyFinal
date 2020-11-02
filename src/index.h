@@ -2,7 +2,8 @@ const char MAIN_page[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
 <style>
-.card{
+.card
+{
     max-width: 400px;
      min-height: 250px;
      background: #02b875;
@@ -16,28 +17,54 @@ const char MAIN_page[] PROGMEM = R"=====(
 <body>
  
 <div class="card">
-  <h4>The ESP32 Update web page without refresh</h4><br>
-  <h1>Sensor Value:<span id="TimeValue">0</span></h1><br>
-  <br><a href="https://circuits4you.com">Circuits4you.com</a>
+  <h1>Bathroom Buddy</h1><br>
+  <h2><span id="NameValue">INIT</span>
+  For: <span id="TimeValue">0</span></h2>
 </div>
 <script>
  
-setInterval(function() {
-  // Call a function repetatively with 2 Second interval
-  getData();
+setInterval(function() 
+{
+  // Call a function repetatively with 1 Second interval
+  getTimeData();
+  getNameData();
 }, 1000); //1000mSeconds update rate
+
+setInterval(function() 
+{
+  // getNameData();
+}, 5000); //5000ms update rate
  
-function getData() {
+function getTimeData() 
+{
   var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("TimeValue").innerHTML =
-      this.responseText;
+  xhttp.onreadystatechange = function() 
+  {
+    if (this.readyState == 4 && this.status == 200) 
+    {
+      document.getElementById("TimeValue").innerHTML = this.responseText;
     }
   };
   xhttp.open("GET", "readTime", true);
   xhttp.send();
 }
+
+function getNameData() 
+{
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() 
+  {
+    if (this.readyState == 4 && this.status == 200) 
+    {
+      document.getElementById("NameValue").innerHTML = this.responseText;
+
+    }
+  };
+  xhttp.open("GET", "readName", true);
+  xhttp.send();
+}
+
+
 </script>
 </body>
 </html>
