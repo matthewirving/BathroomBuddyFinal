@@ -23,6 +23,9 @@ const char MAIN_page[] PROGMEM = R"=====(
 </div>
 <script>
  
+
+
+
 setInterval(function() 
 {
   // Call a function repetatively with 1 Second interval
@@ -38,6 +41,8 @@ setInterval(function()
 function getTimeData() 
 {
   var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", "readTime", true);
+  xhttp.send();
   xhttp.onreadystatechange = function() 
   {
     if (this.readyState == 4 && this.status == 200) 
@@ -45,13 +50,15 @@ function getTimeData()
       document.getElementById("TimeValue").innerHTML = this.responseText;
     }
   };
-  xhttp.open("GET", "readTime", true);
-  xhttp.send();
+  //xhttp.open("GET", "readTime", true);
+  //xhttp.send();
 }
 
 function getNameData() 
 {
   var xhttp = new XMLHttpRequest();
+  xhttp.open("GET", "readName", true);
+  xhttp.send();
   xhttp.onreadystatechange = function() 
   {
     if (this.readyState == 4 && this.status == 200) 
@@ -60,8 +67,8 @@ function getNameData()
 
     }
   };
-  xhttp.open("GET", "readName", true);
-  xhttp.send();
+  //xhttp.open("GET", "readName", true);
+  //xhttp.send();
 }
 
 

@@ -12,7 +12,7 @@
 const char *password = WIFI_PASSWORD;
 const char *network = WIFI_NETWORK;
 
-
+TaskHandle_t Task1;
 
 // sets web server port to 80
 WebServer server(80);
@@ -51,23 +51,7 @@ void connectToWifi()
 unsigned long pageCurrTime = millis();
 unsigned long pagePrevTime = 0;
 
-/*void webpageHandler()
-{
-  WiFiClient client = server.available();
 
-  if(client) // if theres a new client connection
-  {
-    pageCurrTime = millis();
-    pagePrevTime = pageCurrTime;
-    Serial.println("New Client.");
-    String currentLine = ""; // make string to hold incoming data from client
-    while (client.connected() && pageCurrTime - pagePrevTime <= WIFI_TIMEOUT_MS) // loop while client is connected
-    {
-
-    }
-  } 
-}
-*/
 
 // 4 display on/off pin (for the common anode/cathode)
 const int control_pins[NUM_OF_DIGITS] = {5, 18, 19, 21};
@@ -173,14 +157,15 @@ void handle_root()
 void handle_name()
 {
   int switchNum = 0;
-  bool switchFound = false;
+  //bool switchFound = false;
   String name = "Noone";
   for(int j = 0; j < 7; j++)
   {
     if(digitalRead(switchPins[j]) == HIGH)
     {
       switchNum = j;
-      switchFound = true;
+      Serial.print(Pin #)
+      //switchFound = true;
     }
   }
 
@@ -209,7 +194,7 @@ void handle_name()
       break;
   }
 
-  server.send(200, "text/plane", name);
+  server.send(200, "text/plain", name);
 }
 
 void handle_time()
@@ -234,7 +219,19 @@ void handle_time()
   }
   //if(myTime.LEDTime() % 2 == 1) {Serial.print(myTime.fLEDTime() + " ------ "); Serial.print(lenHold + " ------ "); Serial.println(t);}
   
-  server.send(200, "text/plane", t);
+  server.send(200, "text/plain", t);
+}
+
+void Task1Code( void * pvParameters)
+{
+  Serial.print("Task 1 running on core ");
+  Serial.println(xPortGetCoreID());
+  disableCore0WDT();
+
+  for(;;)
+  {
+    server.handleClient();
+  }
 }
 
 
@@ -245,6 +242,15 @@ void setup() {
   Serial.begin(115200);
 
   int i;
+
+  xTaskCreatePinnedToCore(
+    Task1Code, // Task function.
+    "Task1", // Name of the Task
+    10000, // stack size of the task
+    NULL, // parameter of the task
+    1, // Priority of the task
+    &Task1, // Task handle
+    0); // pin task to core 0
 
   // set related pins as output pins
   for (i = 0; i < NUM_OF_DIGITS; i++)
@@ -268,6 +274,7 @@ void setup() {
   server.on("/readName", handle_name);
   server.begin();
 }
+
 
 
 
@@ -307,7 +314,7 @@ void ledFunction()
 }
 
 void loop() {
-  server.handleClient();
+  //server.handleClient();
   
   
   switchFlipped = switchChecker();
