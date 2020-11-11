@@ -12,7 +12,6 @@
 const char *password = WIFI_PASSWORD;
 const char *network = WIFI_NETWORK;
 
-TaskHandle_t Task1;
 
 // sets web server port to 80
 WebServer server(80);
@@ -154,17 +153,19 @@ void handle_root()
   server.send(200, "text/html", s);
 }
 
-void handle_name()
+String getName()
 {
   int switchNum = 0;
   //bool switchFound = false;
   String name = "Noone";
   for(int j = 0; j < 7; j++)
   {
-    if(digitalRead(switchPins[j]) == HIGH)
+    int switchHigh = digitalRead(switchPins[j]);
+    if(switchHigh == HIGH)
     {
       switchNum = j;
-      Serial.print(Pin #)
+      //Serial.print("Switch # " + j);
+      //Serial.println(switchHigh == HIGH ? "= true" : "= false");
       //switchFound = true;
     }
   }
@@ -194,10 +195,11 @@ void handle_name()
       break;
   }
 
-  server.send(200, "text/plain", name);
+  //server.send(200, "text/plain", name);
+  return name;
 }
 
-void handle_time()
+String getTime()
 {
   String s = myTime.fLEDTime();
   String t = "";
@@ -219,21 +221,15 @@ void handle_time()
   }
   //if(myTime.LEDTime() % 2 == 1) {Serial.print(myTime.fLEDTime() + " ------ "); Serial.print(lenHold + " ------ "); Serial.println(t);}
   
-  server.send(200, "text/plain", t);
+  //server.send(200, "text/plain", t);
+  return t;
 }
 
-void Task1Code( void * pvParameters)
+void handle_data()
 {
-  Serial.print("Task 1 running on core ");
-  Serial.println(xPortGetCoreID());
-  disableCore0WDT();
-
-  for(;;)
-  {
-    server.handleClient();
-  }
+  String temp = getName() + "-" + getTime();
+  server.send(200, "text/plain", temp);
 }
-
 
 void setup() {
   // put your setup code here, to run once:
@@ -243,14 +239,6 @@ void setup() {
 
   int i;
 
-  xTaskCreatePinnedToCore(
-    Task1Code, // Task function.
-    "Task1", // Name of the Task
-    10000, // stack size of the task
-    NULL, // parameter of the task
-    1, // Priority of the task
-    &Task1, // Task handle
-    0); // pin task to core 0
 
   // set related pins as output pins
   for (i = 0; i < NUM_OF_DIGITS; i++)
@@ -270,8 +258,9 @@ void setup() {
   connectToWifi();
   
   server.on("/", handle_root);
-  server.on("/readTime", handle_time);
-  server.on("/readName", handle_name);
+  //server.on("/readTime", handle_time);
+  //server.on("/readName", handle_name);
+  server.on("/readData", handle_data);
   server.begin();
 }
 
@@ -314,7 +303,7 @@ void ledFunction()
 }
 
 void loop() {
-  //server.handleClient();
+  server.handleClient();
   
   
   switchFlipped = switchChecker();
