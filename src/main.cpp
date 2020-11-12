@@ -1,8 +1,56 @@
 #include <Arduino.h>
 #include <Time.cpp>
+#include <Wifi.h>
+#include <WebServer.h>
+#include "../credentials/info.h"
+#include "index.h"
 
 #define DELAY_FACTOR  (100)
 #define NUM_OF_DIGITS (4)
+
+#define WIFI_TIMEOUT_MS 20000
+const char *password = WIFI_PASSWORD;
+const char *network = WIFI_NETWORK;
+
+
+// sets web server port to 80
+WebServer server(80);
+
+// variable to store HTTP request
+String header;
+
+void connectToWifi()
+{
+  Serial.print("Connecting to WiFi");
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(network, password);
+
+  unsigned long startAttemptTime = millis();
+
+  while(WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < WIFI_TIMEOUT_MS)
+  {
+    Serial.print(".");
+    delay(100);
+  }
+
+  if(WiFi.status() != WL_CONNECTED)
+  {
+    Serial.println("Failed!");
+    // take action
+  }
+  else
+  {
+    Serial.print("Connected!");
+    Serial.println(WiFi.localIP());
+
+    
+  }
+}
+
+unsigned long pageCurrTime = millis();
+unsigned long pagePrevTime = 0;
+
+
 
 // 4 display on/off pin (for the common anode/cathode)
 const int control_pins[NUM_OF_DIGITS] = {5, 18, 19, 21};
@@ -37,6 +85,7 @@ const byte digit_pattern[16] =
 int digit_data[NUM_OF_DIGITS] = {0};
 int scan_position = 0;
 
+Time myTime;
 
 void update_one_digit()
 {
@@ -79,32 +128,7 @@ void update_one_digit()
 
 int switchPins[] = {13, 12, 14, 27, 26, 25, 33};
 
-void setup() {
-  // put your setup code here, to run once:
-  pinMode(2, INPUT);
-  pinMode(A0, INPUT);
-  Serial.begin(115200);
 
-  int i;
-
-  // set related pins as output pins
-  for (i = 0; i < NUM_OF_DIGITS; i++)
-  {
-    pinMode(control_pins[i], OUTPUT);
-  }
-
-  pinMode(data_pin, OUTPUT);
-  pinMode(bit_clock_pin, OUTPUT);
-  pinMode(digit_clock_pin, OUTPUT);  
-  
-  for (int j = 0; j < 7; j++)
-  {
-    pinMode(switchPins[j], INPUT_PULLDOWN);
-  }
-
-  
-}
-Time myTime;
 
 int switchCheck = 0;
 
@@ -122,6 +146,125 @@ bool switchChecker()
   
   return (switchCheck >= 1 ? true : false);
 }
+
+void handle_root()
+{
+  String s = MAIN_page;
+  server.send(200, "text/html", s);
+}
+
+String getName()
+{
+  int switchNum = 0;
+  //bool switchFound = false;
+  String name = "Noone";
+  for(int j = 0; j < 7; j++)
+  {
+    int switchHigh = digitalRead(switchPins[j]);
+    if(switchHigh == HIGH)
+    {
+      switchNum = j;
+      //Serial.print("Switch # " + j);
+      //Serial.println(switchHigh == HIGH ? "= true" : "= false");
+      //switchFound = true;
+    }
+  }
+
+  switch(switchNum)
+  {
+    case 1:
+      name = "Switch One";
+      break;
+    case 2:
+      name = "Switch Two";
+      break;
+    case 3:
+      name = "Switch Three";
+      break;
+    case 4:
+      name = "Switch Four";
+      break;
+    case 5:
+      name = "Switch Five";
+      break;
+    case 6:
+      name = "Switch Six";
+      break;
+    default:
+      name = "Default / Noone";
+      break;
+  }
+
+  //server.send(200, "text/plain", name);
+  return name;
+}
+
+String getTime() // moved this function to serverside and replaced it with a boolean value to save on bits / time
+{
+  String s = myTime.fLEDTime();
+  String t = "";
+  int lenHold = s.length();
+  switch(lenHold)
+  {
+    case 1:
+      t = "00:0" + s;
+      break;
+    case 2:
+      t = "00:" + s;
+      break;
+    case 3:
+      t = "0" + s.substring(0,1) + ":" + s.substring(1);
+      break;
+    case 4:
+      t = s.substring(0,2) + ":" + s.substring(2);
+      break;
+  }
+  //if(myTime.LEDTime() % 2 == 1) {Serial.print(myTime.fLEDTime() + " ------ "); Serial.print(lenHold + " ------ "); Serial.println(t);}
+  
+  //server.send(200, "text/plain", t);
+  return t;
+}
+
+void handle_data()
+{
+  String temp = getName() + "-" + (digitalRead(13) == HIGH ? "false" : "true"); // this is reversed from what it hypothetically should be but it works i dunno
+  server.send(200, "text/plain", temp);
+}
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(2, INPUT);
+  pinMode(A0, INPUT);
+  Serial.begin(115200);
+
+  int i;
+
+
+  // set related pins as output pins
+  for (i = 0; i < NUM_OF_DIGITS; i++)
+  {
+    pinMode(control_pins[i], OUTPUT);
+  }
+
+  pinMode(data_pin, OUTPUT);
+  pinMode(bit_clock_pin, OUTPUT);
+  pinMode(digit_clock_pin, OUTPUT);  
+  
+  for (int j = 0; j < 7; j++)
+  {
+    pinMode(switchPins[j], INPUT_PULLDOWN);
+  }
+
+  connectToWifi();
+  
+  server.on("/", handle_root);
+  server.on("/readData", handle_data);
+  server.begin();
+}
+
+
+
+
 
 void ledFunction()
 {
@@ -158,8 +301,7 @@ void ledFunction()
 }
 
 void loop() {
-  
-  
+  server.handleClient();
   
   
   switchFlipped = switchChecker();
@@ -174,6 +316,7 @@ void loop() {
   ledFunction();
   update_one_digit();
 }
+
 
 
 
