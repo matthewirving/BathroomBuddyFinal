@@ -199,7 +199,7 @@ String getName()
   return name;
 }
 
-String getTime()
+String getTime() // moved this function to serverside and replaced it with a boolean value to save on bits / time
 {
   String s = myTime.fLEDTime();
   String t = "";
@@ -227,7 +227,7 @@ String getTime()
 
 void handle_data()
 {
-  String temp = getName() + "-" + getTime();
+  String temp = getName() + "-" + (digitalRead(13) == HIGH ? "false" : "true"); // this is reversed from what it hypothetically should be but it works i dunno
   server.send(200, "text/plain", temp);
 }
 
@@ -258,8 +258,6 @@ void setup() {
   connectToWifi();
   
   server.on("/", handle_root);
-  //server.on("/readTime", handle_time);
-  //server.on("/readName", handle_name);
   server.on("/readData", handle_data);
   server.begin();
 }
