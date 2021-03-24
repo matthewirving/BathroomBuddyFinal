@@ -227,7 +227,8 @@ String getTime() // moved this function to serverside and replaced it with a boo
 
 void handle_data()
 {
-  String temp = getName() + "-" + (digitalRead(13) == HIGH ? "false" : "true"); // this is reversed from what it hypothetically should be but it works i dunno
+  //String temp = getName() + "-" + (digitalRead(13) == HIGH ? "false" : "true"); // this is reversed from what it hypothetically should be but it works i dunno
+  String temp = getName() + "-" + (switchChecker() == HIGH ? "false" : "true");
   server.send(200, "text/plain", temp);
 }
 

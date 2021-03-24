@@ -47,6 +47,7 @@ function timerControl()
   {
   	initTime = new Date().getTime();
     intervalHolder = setInterval(timerDisplay, 1000, switchIsFlipped);
+    timerDisplay(switchIsFlipped)
   }
   else
   {
