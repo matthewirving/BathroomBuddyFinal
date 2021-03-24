@@ -23,7 +23,7 @@ const char MAIN_page[] PROGMEM = R"=====(
 </div>
 <script>
  
-
+ var newTime = "0";
 
 
 setInterval(function() 
@@ -45,7 +45,7 @@ function timerControl()
 	//switchIsFlipped = !switchIsFlipped;
   if(switchIsFlipped)
   {
-  	initTime = new Date().getTime();
+  	//initTime = new Date().getTime();
     intervalHolder = setInterval(timerDisplay, 1000, switchIsFlipped);
     timerDisplay(switchIsFlipped)
   }
@@ -61,15 +61,18 @@ function timerDisplay(switchFlag)
 	var sFlip = switchFlag;
   if(sFlip)
   {
-  	var elapsed = (new Date().getTime()) - initTime;
+  	/*
+    var elapsed = (new Date().getTime()) - initTime;
     var seconds = Math.floor((elapsed / 1000) % 60);
     var minutes = Math.floor((elapsed / 60000) % 60);
     var LEDTime = ((minutes * 100) + seconds).toString();
     document.getElementById("TimeValue").innerHTML = fLEDTime(LEDTime);
+    */
+    document.getElementById("TimeValue").innerHTML = newTime;
   }
   else
   {
-  initTime = new Date().getTime();
+  //initTime = new Date().getTime();
   document.getElementById("TimeValue").innerHTML = "00:00";
   }
 }
@@ -89,14 +92,28 @@ function getAllData()
       document.getElementById("NameValue").innerHTML = data[0];
       //document.getElementById("TimeValue").innerHTML = data[1];
 
-      if(data[1] == "true")
+      
+      if(data[2] == "true")
       {
         switchIsFlipped = true;
+        newTime = data[1];
       }
-      else if(data[1] == "false")
+      else if(data[2] == "false")
       {
         switchIsFlipped = false;
       }
+      /*
+     if(data[1] != 0)
+     {
+       switchIsFlipped = true;
+       initTime = data[1];
+     }
+     else
+     {
+       switchIsFlipped = false;
+       initTime = data[1];
+     }
+     */
     }
   };
 }

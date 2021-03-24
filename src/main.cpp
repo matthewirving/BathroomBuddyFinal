@@ -4,6 +4,8 @@
 #include <WebServer.h>
 #include "../credentials/info.h"
 #include "index.h"
+#include <chrono>
+#include <iostream>
 
 #define DELAY_FACTOR  (100)
 #define NUM_OF_DIGITS (4)
@@ -12,6 +14,10 @@
 const char *password = WIFI_PASSWORD;
 const char *network = WIFI_NETWORK;
 
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::seconds;
+using std::chrono::system_clock;
 
 // sets web server port to 80
 WebServer server(80);
@@ -49,7 +55,7 @@ void connectToWifi()
 
 unsigned long pageCurrTime = millis();
 unsigned long pagePrevTime = 0;
-
+int64_t initTime = 0;
 
 
 // 4 display on/off pin (for the common anode/cathode)
@@ -134,6 +140,20 @@ int switchCheck = 0;
 
 bool firstRun = true;
 bool switchFlipped = false;
+
+String convertNum(uint64_t n)
+{
+  unsigned char temp;
+  String result = "";
+  if(n == 0){return "0";}
+
+  while(n)
+  {
+    result = String(temp) + result;
+    n = (n-temp) / 10;
+  }
+  return result;
+}
 
 bool switchChecker()
 {
@@ -225,10 +245,15 @@ String getTime() // moved this function to serverside and replaced it with a boo
   return t;
 }
 
+
+
+
 void handle_data()
 {
   //String temp = getName() + "-" + (digitalRead(13) == HIGH ? "false" : "true"); // this is reversed from what it hypothetically should be but it works i dunno
-  String temp = getName() + "-" + (switchChecker() == HIGH ? "false" : "true");
+  //String temp = getName() + "-" + (switchChecker() == HIGH ? false : true);
+  //String temp = getName() + "-" + convertNum(initTime);
+  String temp = getName() + "-" + getTime() + "-" + (switchChecker() ? "true" : "false");
   server.send(200, "text/plain", temp);
 }
 
@@ -238,11 +263,11 @@ void setup() {
   pinMode(A0, INPUT);
   Serial.begin(115200);
 
-  int i;
+  //int i;
 
 
   // set related pins as output pins
-  for (i = 0; i < NUM_OF_DIGITS; i++)
+  for (int i = 0; i < NUM_OF_DIGITS; i++)
   {
     pinMode(control_pins[i], OUTPUT);
   }
@@ -301,12 +326,15 @@ void ledFunction()
 
 }
 
+
+
 void loop() {
-  server.handleClient();
   
+  //server.handleClient();
   
   switchFlipped = switchChecker();
-  
+  switchFlipped ? initTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() : initTime = 0;
+  server.handleClient();
 
   if(firstRun)
   {
