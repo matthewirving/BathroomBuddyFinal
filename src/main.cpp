@@ -4,7 +4,6 @@
 #include <WebServer.h>
 #include "../credentials/info.h"
 #include "index.h"
-#include <chrono>
 #include <iostream>
 
 #define DELAY_FACTOR  (100)
@@ -14,10 +13,7 @@
 const char *password = WIFI_PASSWORD;
 const char *network = WIFI_NETWORK;
 
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-using std::chrono::seconds;
-using std::chrono::system_clock;
+TaskHandle_t TimeTask;
 
 // sets web server port to 80
 WebServer server(80);
@@ -27,6 +23,14 @@ String header;
 
 void connectToWifi()
 {
+  IPAddress localIP(192, 168, 1, 255);
+  IPAddress DNS1(8, 8, 8, 8);
+  IPAddress DNS2(8, 8, 4, 4);
+  IPAddress gateway(192, 168, 1, 1);
+  IPAddress subnet(255, 255, 255, 0);
+  
+
+
   Serial.print("Connecting to WiFi");
   WiFi.mode(WIFI_STA);
   WiFi.begin(network, password);
@@ -46,17 +50,27 @@ void connectToWifi()
   }
   else
   {
-    Serial.print("Connected!");
+    Serial.println("Connected!");
+    
+    Serial.print("IP: ");
     Serial.println(WiFi.localIP());
-
+    
+    Serial.print("DNS1: ");
+    Serial.println(WiFi.dnsIP(0));
+    Serial.print("DNS2: ");
+    Serial.println(WiFi.dnsIP(1));
+    
+    Serial.print("Gateway: ");
+    Serial.println(WiFi.gatewayIP());
+    
+    Serial.print("Subnet: ");
+    Serial.println(WiFi.subnetMask());
     
   }
 }
 
 unsigned long pageCurrTime = millis();
 unsigned long pagePrevTime = 0;
-int64_t initTime = 0;
-
 
 // 4 display on/off pin (for the common anode/cathode)
 const int control_pins[NUM_OF_DIGITS] = {5, 18, 19, 21};
@@ -141,20 +155,6 @@ int switchCheck = 0;
 bool firstRun = true;
 bool switchFlipped = false;
 
-String convertNum(uint64_t n)
-{
-  unsigned char temp;
-  String result = "";
-  if(n == 0){return "0";}
-
-  while(n)
-  {
-    result = String(temp) + result;
-    n = (n-temp) / 10;
-  }
-  return result;
-}
-
 bool switchChecker()
 {
   switchCheck = 0;
@@ -183,7 +183,7 @@ String getName()
     int switchHigh = digitalRead(switchPins[j]);
     if(switchHigh == HIGH)
     {
-      switchNum = j;
+      switchNum = j + 1;
       //Serial.print("Switch # " + j);
       //Serial.println(switchHigh == HIGH ? "= true" : "= false");
       //switchFound = true;
@@ -214,7 +214,8 @@ String getName()
       name = "Default / Noone";
       break;
   }
-
+  Serial.print("switchNum: ");
+  Serial.println(switchNum);
   //server.send(200, "text/plain", name);
   return name;
 }
@@ -250,9 +251,6 @@ String getTime() // moved this function to serverside and replaced it with a boo
 
 void handle_data()
 {
-  //String temp = getName() + "-" + (digitalRead(13) == HIGH ? "false" : "true"); // this is reversed from what it hypothetically should be but it works i dunno
-  //String temp = getName() + "-" + (switchChecker() == HIGH ? false : true);
-  //String temp = getName() + "-" + convertNum(initTime);
   String temp = getName() + "-" + getTime() + "-" + (switchChecker() ? "true" : "false");
   server.send(200, "text/plain", temp);
 }
@@ -326,22 +324,37 @@ void ledFunction()
 
 }
 
-
-
+/*void TimeTaskCode( void *pvParameters )
+{
+  server.handleClient();
+  vTaskDelete(NULL);
+}
+*/
 void loop() {
   
-  //server.handleClient();
-  
-  switchFlipped = switchChecker();
-  switchFlipped ? initTime = duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() : initTime = 0;
-  server.handleClient();
-
   if(firstRun)
   {
     myTime.initalizeTime();
     firstRun = false;
   }
+
+  switchFlipped = switchChecker();
+  if(switchFlipped == false)
+  {
+    myTime.reset();
+  }
+  server.handleClient();
   
+/*  xTaskCreatePinnedToCore(
+    TimeTaskCode,
+    "TimeTask",
+    10000,
+    NULL,
+    0,
+    &TimeTask,
+    0);
+  */
+
   ledFunction();
   update_one_digit();
 }

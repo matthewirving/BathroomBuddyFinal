@@ -25,40 +25,11 @@ const char MAIN_page[] PROGMEM = R"=====(
  
  var newTime = "0";
 
-
-setInterval(function() 
-{
-  // Call a function repetatively with 1 Second interval
-  //getTimeData();
-  //getNameData();
-  getAllData();
-  timerControl();
-}, 1000); //1000mSeconds update rate
-
- 
 var switchIsFlipped = false;
-var initTime = new Date().getTime();
-var intervalHolder;
-
-function timerControl()
-{
-	//switchIsFlipped = !switchIsFlipped;
-  if(switchIsFlipped)
-  {
-  	//initTime = new Date().getTime();
-    intervalHolder = setInterval(timerDisplay, 1000, switchIsFlipped);
-    timerDisplay(switchIsFlipped)
-  }
-  else
-  {
-  	clearInterval(intervalHolder);
-  	//document.getElementById("TimeValue").innerHTML = "No One In BR";
-  }
-}
 
 function timerDisplay(switchFlag)
 {
-	var sFlip = switchFlag;
+  var sFlip = switchFlag;
   if(sFlip)
   {
   	/*
@@ -90,9 +61,9 @@ function getAllData()
       var holder = this.responseText;
       var data = holder.replace(/\s+/g, '').split('-');
       document.getElementById("NameValue").innerHTML = data[0];
-      //document.getElementById("TimeValue").innerHTML = data[1];
+      document.getElementById("TimeValue").innerHTML = data[1];
 
-      
+      /*
       if(data[2] == "true")
       {
         switchIsFlipped = true;
@@ -102,7 +73,7 @@ function getAllData()
       {
         switchIsFlipped = false;
       }
-      /*
+      
      if(data[1] != 0)
      {
        switchIsFlipped = true;
@@ -118,29 +89,15 @@ function getAllData()
   };
 }
 
-function fLEDTime(time)
+
+setInterval(function() 
 {
-	var timeHolder = time;
-  var lenHold = timeHolder.length;
-  var t = "";
-  
-  switch(lenHold)
-  {
-    case 1:
-      t = "00:0" + timeHolder;
-      break;
-    case 2:
-      t = "00:" + timeHolder;
-      break;
-    case 3:
-      t = "0" + timeHolder.substring(0,1) + ":" + timeHolder.substring(1);
-      break;
-    case 4:
-      t = timeHolder.substring(0,2) + ":" + timeHolder.substring(2);
-      break;
-  }
-  return t;
-}
+  // Call a function repetatively with 1 Second interval
+  //getTimeData();
+  //getNameData();
+  getAllData();
+  //timerDisplay(switchIsFlipped);
+}, 1000); //1000mSeconds update rate
 
 </script>
 </body>
