@@ -10,8 +10,8 @@
 #define NUM_OF_DIGITS (4)
 
 #define WIFI_TIMEOUT_MS 20000
-const char *password = WIFI_PASSWORD;
-const char *network = WIFI_NETWORK;
+const char *password = WIFI_PASSWORD_HOME;
+const char *network = WIFI_NETWORK_HOME;
 
 TaskHandle_t TimeTask;
 
@@ -214,8 +214,8 @@ String getName()
       name = "Default / Noone";
       break;
   }
-  Serial.print("switchNum: ");
-  Serial.println(switchNum);
+  //Serial.print("switchNum: ");
+  //Serial.println(switchNum);
   //server.send(200, "text/plain", name);
   return name;
 }
